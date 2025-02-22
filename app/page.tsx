@@ -22,20 +22,14 @@ export default async function Home() {
             </Link>
           </div>
           <div className="flex items-center space-x-6">
-            {/* <Link
-              href="https://github.com/beilunyang"
+            <Link
+              href="https://github.com/beilunyang/moepush"
               target="_blank"
               rel="noreferrer"
               className="text-sm font-medium text-gray-600 hover:text-blue-500 transition-colors"
             >
               GitHub
             </Link>
-            <Link 
-              href="/docs" 
-              className="text-sm font-medium text-gray-600 hover:text-blue-500 transition-colors"
-            >
-              文档
-            </Link> */}
             {session?.user ? (
               <UserNav user={session.user} />
             ) : (
@@ -57,7 +51,9 @@ export default async function Home() {
           <div className="container flex max-w-[64rem] flex-col items-center gap-4 text-center pt-14 pb-24 md:pb-32">
             <div className="inline-block rounded-full bg-blue-100 px-4 py-1.5 text-sm font-medium text-blue-600">
               <span className="inline-block animate-bounce mr-2">✨</span>
-              v0.1.0-beta 现已发布
+              <Link href="https://github.com/beilunyang/moepush" target="_blank" rel="noreferrer">
+                MoePush 现已开源
+              </Link>
               <span className="inline-block animate-bounce ml-2">✨</span>
             </div>
             <h1 className="font-bold text-4xl sm:text-5xl md:text-6xl lg:text-7xl">
