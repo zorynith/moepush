@@ -14,6 +14,7 @@ const setupWranglerConfig = () => {
     let wranglerConfig = fs.readFileSync(wranglerExamplePath, 'utf-8');
     const json = JSON.parse(wranglerConfig);
     json.d1_databases[0].database_name = dbName;
+    json.name = projectName;
     fs.writeFileSync(wranglerConfigPath, JSON.stringify(json, null, 2));
 };
 
@@ -110,13 +111,36 @@ const createProject = async () => {
             throw new Error(`Error creating project: ${response.statusText}`);
         }
 
-        const data = await response.json() as { success: boolean };
-
+        const data = await response.json() as { success: boolean, result: { name: string } };
+        
         if (!data.success) {
             throw new Error('Failed to create project');
         }
 
-        console.log(`Project ${projectName} created successfully`);
+        // 等待项目创建完成
+        await new Promise(resolve => setTimeout(resolve, 5000));
+        
+        // 验证项目是否真正创建成功
+        const verifyResponse = await fetch(
+            `https://api.cloudflare.com/client/v4/accounts/${accountId}/pages/projects/${projectName}`,
+            {
+                headers: {
+                    Authorization: `Bearer ${cloudflareApiToken}`,
+                    'Content-Type': 'application/json',
+                },
+            }
+        );
+
+        if (!verifyResponse.ok) {
+            throw new Error('Project creation verification failed');
+        }
+
+        const verifyData = await verifyResponse.json() as { success: boolean };
+        if (!verifyData.success) {
+            throw new Error('Project creation could not be verified');
+        }
+
+        console.log(`Project ${projectName} created and verified successfully`);
     } catch (error) {
         console.error('Error creating project:', error);
         throw error;
@@ -126,9 +150,9 @@ const createProject = async () => {
 const main = async () => {
     try {
         setupWranglerConfig();
+        await checkProjectExists();
         checkAndCreateDatabase();
         applyMigrations();
-        await checkProjectExists();
         createPagesSecret();
         deployPages();
 
