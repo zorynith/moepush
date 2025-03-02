@@ -2,7 +2,7 @@ import { sql } from "drizzle-orm"
 import { text, sqliteTable, index } from "drizzle-orm/sqlite-core"
 import { createInsertSchema, createSelectSchema } from "drizzle-zod"
 import { z } from "zod"
-import { CHANNEL_TYPES } from "@/lib/constants/channels"
+import { CHANNEL_TYPES } from "@/lib/channels"
 
 export const channels = sqliteTable("channels", {
   id: text("id").primaryKey(),
@@ -91,4 +91,4 @@ export const insertChannelSchema = createInsertSchema(channels).extend({
 export const selectChannelSchema = createSelectSchema(channels)
 
 export type Channel = typeof channels.$inferSelect
-export type NewChannel = z.infer<typeof insertChannelSchema> 
+export type ChannelFormData = z.infer<typeof insertChannelSchema> 

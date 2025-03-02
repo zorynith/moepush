@@ -12,13 +12,13 @@ import {
 } from "@/components/ui/form"
 import { ChevronDown, ChevronUp } from "lucide-react"
 import { UseFormReturn } from "react-hook-form"
-import { NewEndpoint } from "@/lib/db/schema/endpoints"
-import { MessageTemplate, TemplateField } from "@/lib/constants/templates"
+import { MessageTemplate } from "@/lib/channels/base"
+import { TemplateField } from "@/lib/channels"
 import { getNestedValue, setNestedValue } from "@/lib/utils"
 import { FunctionSelector } from "@/components/function-selector"
 
 interface TemplateFieldsProps {
-  form: UseFormReturn<NewEndpoint>
+  form: UseFormReturn<any>
   template: MessageTemplate
 }
 
