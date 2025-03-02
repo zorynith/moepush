@@ -39,8 +39,7 @@ export async function POST(
 
     const messageObj = JSON.parse(processedTemplate)
 
-    // 使用新的渠道发送系统
-    const response = await sendChannelMessage(
+    await sendChannelMessage(
       endpoint.channel.type as any,
       messageObj,
       {

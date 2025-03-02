@@ -108,7 +108,7 @@ export class FeishuChannel extends BaseChannel {
     if (message.msg_type === "post" && typeof message.content.post?.zh_cn.content === 'string') {
       try {
         message.content.post.zh_cn.content = JSON.parse(message.content.post.zh_cn.content as any);
-      } catch (error) {
+      } catch {
         throw new Error("富文本内容格式不正确，请提供有效的JSON格式");
       }
     }
