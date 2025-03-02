@@ -81,6 +81,15 @@ export function safeInterpolate(
                 return acc[part]
             }, data)
 
+            // 处理字符串中的特殊字符, 避免在JSON.parse时出错
+            if (typeof value === 'string') {
+                return value
+                    .replace(/\n/g, '\\n')     // 处理换行符
+                    .replace(/\r/g, '\\r')     // 处理回车符
+                    .replace(/\t/g, '\\t')     // 处理制表符
+                    .replace(/"/g, '\\"')      // 处理双引号
+            }
+
             return value === undefined ? fallback : String(value)
         } catch (error: any) {
             console.warn(`变量解析错误: ${error.message}`)
