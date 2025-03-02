@@ -2,6 +2,7 @@ import { DingtalkFields } from "./dingtalk-fields"
 import { WecomAppFields } from "./wecom-app-fields"
 import { TelegramFields } from "./telegram-fields"
 import { WecomFields } from "./wecom-fields"
+import { FeishuFields } from "./feishu-fields"
 import { CHANNEL_TYPES } from "@/lib/channels"
 import { UseFormReturn } from "react-hook-form"
 import type { ChannelFormData } from "@/lib/db/schema/channels"
@@ -25,6 +26,9 @@ export function ChannelFormFields({ type, form }: ChannelFormFieldsProps) {
 
         case CHANNEL_TYPES.TELEGRAM:
             return <TelegramFields form={form} />
+            
+        case CHANNEL_TYPES.FEISHU:
+            return <FeishuFields form={form} />
 
         default:
             return null

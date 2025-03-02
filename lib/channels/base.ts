@@ -1,6 +1,7 @@
 export interface TemplateField {
   key: string
   description?: string
+  placeholder?: string
   required?: boolean
   component?: 'input' | 'textarea' | 'checkbox' | 'select' | 'hidden'
   defaultValue?: string
