@@ -1,4 +1,4 @@
-name: Docker 发布
+name: Docker Publish
 
 on:
   push:
@@ -38,8 +38,8 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
+            type=raw,value=latest
             type=ref,event=tag
-            type=raw,value=latest,enable=${{ github.event_name == 'push' }}
             type=raw,value=${{ inputs.tag }},enable=${{ github.event_name == 'workflow_dispatch' }}
 
       - name: 构建并推送 Docker 镜像
