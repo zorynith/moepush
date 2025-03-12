@@ -107,7 +107,7 @@ pnpm run dev
 
 ```bash
 docker pull beilunyang/moepush
-docker run -d -p 3000:3000 -v $(pwd)/.wrangler:/app/.wrangler moepush
+docker run -d -p 3000:3000 -v $(pwd)/.wrangler:/app/.wrangler -e AUTH_SECRET=<你的AUTH_SECRET> -e AUTH_GITHUB_ID=<你的AUTH_GITHUB_ID> -e AUTH_GITHUB_SECRET=<你的AUTH_GITHUB_SECRET> moepush
 ```
 
 ## 贡献
