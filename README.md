@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="public/logo.png" alt="MoePush Logo" width="100" height="100">
+  <img src="public/moe_logo.png" alt="MoePush Logo" width="100" height="100">
   <h1 align="center">MoePush</h1>
 </p>
 
