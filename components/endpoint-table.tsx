@@ -16,7 +16,7 @@ import {
   DropdownMenuItem, 
   DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu"
-import { MoreHorizontal, Loader2, Eye, Power, Trash, Pencil, Zap } from "lucide-react"
+import { MoreHorizontal, Loader2, Eye, Power, Trash, Pencil, Zap, Plus } from "lucide-react"
 import {
   Popover,
   PopoverContent,
@@ -40,33 +40,39 @@ import { STATUS_LABELS, STATUS_COLORS } from "@/lib/constants/endpoints"
 import { Channel } from "@/lib/channels"
 import { EndpointExample } from "@/components/endpoint-example"
 import { useRouter } from "next/navigation"
-import { deleteEndpoint, toggleEndpointStatus, testEndpoint } from "@/lib/services/endpoints"
+import { deleteEndpoint, toggleEndpointStatus, testEndpoint, getEndpoints } from "@/lib/services/endpoints"
+import { Checkbox } from "@/components/ui/checkbox"
+import { CreateEndpointGroupDialog } from "./create-endpoint-group-dialog"
 
 interface EndpointTableProps {
   endpoints: Endpoint[]
   channels: Channel[]
+  onEndpointsUpdate: (endpoints: Endpoint[]) => void
 }
 
 export function EndpointTable({ 
-  endpoints: initialEndpoints, 
+  endpoints,
   channels,
+  onEndpointsUpdate,
 }: EndpointTableProps) {
   const [searchQuery, setSearchQuery] = useState("")
-  const [endpoints, setEndpoints] = useState(initialEndpoints)
+  const [localEndpoints, setLocalEndpoints] = useState<Endpoint[]>(endpoints)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [endpointToDelete, setEndpointToDelete] = useState<Endpoint | null>(null)
   const [isDeleting, setIsDeleting] = useState(false)
   const [isTesting, setIsTesting] = useState<string | null>(null)
   const { toast } = useToast()
   const [viewExample, setViewExample] = useState<Endpoint | null>(null)
-  const [isToggling, setIsToggling] = useState(false)
   const router = useRouter()
+  const [selectedEndpoints, setSelectedEndpoints] = useState<Endpoint[]>([])
+  const [createGroupDialogOpen, setCreateGroupDialogOpen] = useState(false)
+  const [isLoading, setIsLoading] = useState<string | null>(null)
 
   useEffect(() => {
-    setEndpoints(initialEndpoints)
-  }, [initialEndpoints])
+    setLocalEndpoints(endpoints)
+  }, [endpoints])
 
-  const filteredEndpoints = endpoints.filter((endpoint) => {
+  const filteredEndpoints = localEndpoints?.filter((endpoint) => {
     if (!searchQuery.trim()) return true
     
     const channel = channels.find(c => c.id === endpoint.channelId)
@@ -79,7 +85,7 @@ export function EndpointTable({
     
     const keywords = searchQuery.toLowerCase().split(/\s+/)
     return keywords.every(keyword => searchContent.includes(keyword))
-  })
+  }) ?? []
 
   const handleDelete = async () => {
     if (!endpointToDelete) return
@@ -87,7 +93,9 @@ export function EndpointTable({
     try {
       setIsDeleting(true)
       await deleteEndpoint(endpointToDelete.id)
-      setEndpoints(endpoints.filter(e => e.id !== endpointToDelete.id))
+      const updatedEndpoints = localEndpoints.filter(e => e.id !== endpointToDelete.id)
+      setLocalEndpoints(updatedEndpoints)
+      onEndpointsUpdate(updatedEndpoints)
       toast({ description: "接口已删除" })
       router.refresh()
       setDeleteDialogOpen(false)
@@ -102,20 +110,26 @@ export function EndpointTable({
     }
   }
 
-  const handleToggleStatus = async (endpoint: Endpoint) => {
+  const handleToggleStatus = async (id: string) => {
     try {
-      setIsToggling(true)
-      await toggleEndpointStatus(endpoint.id)
-      toast({ description: "状态已更新" })
-      router.refresh()
+      setIsLoading(id)
+      await toggleEndpointStatus(id)
+      
+      // 重新获取最新的推送接口列表
+      const updatedEndpoints = await getEndpoints() as Endpoint[]
+      setLocalEndpoints(updatedEndpoints)
+      onEndpointsUpdate(updatedEndpoints)
+      
+      toast({
+        description: "推送接口状态已更新",
+      })
     } catch (error) {
-      console.error('Error toggling status:', error)
       toast({
         variant: "destructive",
-        description: "更新失败，请重试"
+        description: error instanceof Error ? error.message : "操作失败",
       })
     } finally {
-      setIsToggling(false)
+      setIsLoading(null)
     }
   }
 
@@ -146,6 +160,28 @@ export function EndpointTable({
     return `inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${STATUS_COLORS[status]}`
   }
 
+  const toggleEndpointSelection = (endpoint: Endpoint) => {
+    setSelectedEndpoints(prev => {
+      const isSelected = prev.some(e => e.id === endpoint.id)
+      if (isSelected) {
+        return prev.filter(e => e.id !== endpoint.id)
+      } else {
+        return [...prev, endpoint]
+      }
+    })
+  }
+
+  const handleCreateGroup = () => {
+    if (selectedEndpoints.length === 0) {
+      toast({ 
+        variant: "destructive", 
+        description: "请至少选择一个接口" 
+      })
+      return
+    }
+    setCreateGroupDialogOpen(true)
+  }
+
   return (
     <div className="space-y-4">
       <div className="flex justify-between">
@@ -157,15 +193,29 @@ export function EndpointTable({
             className="h-9"
           />
         </div>
-        <EndpointDialog 
-          channels={channels}
-        />
+        <div className="flex space-x-2">
+          {selectedEndpoints.length > 0 && (
+            <Button 
+              size="sm" 
+              variant="outline" 
+              className="gap-2" 
+              onClick={handleCreateGroup}
+            >
+              <Plus className="h-4 w-4" />
+              创建接口组 ({selectedEndpoints.length})
+            </Button>
+          )}
+          <EndpointDialog 
+            channels={channels}
+          />
+        </div>
       </div>
 
       <div className="rounded-md border">
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead className="w-[50px]"></TableHead>
               <TableHead>ID</TableHead>
               <TableHead>名称</TableHead>
               <TableHead>推送渠道</TableHead>
@@ -187,6 +237,12 @@ export function EndpointTable({
                 const channel = channels.find(c => c.id === endpoint.channelId)
                 return (
                   <TableRow key={endpoint.id}>
+                    <TableCell>
+                      <Checkbox 
+                        checked={selectedEndpoints.some(e => e.id === endpoint.id)}
+                        onCheckedChange={() => toggleEndpointSelection(endpoint)}
+                      />
+                    </TableCell>
                     <TableCell className="font-mono">{endpoint.id}</TableCell>
                     <TableCell>{endpoint.name}</TableCell>
                     <TableCell>{channel?.name}</TableCell>
@@ -242,8 +298,8 @@ export function EndpointTable({
                             icon={<Pencil className="h-4 w-4 mr-2" />}
                           />
                           <DropdownMenuItem
-                            disabled={isToggling}
-                            onClick={() => handleToggleStatus(endpoint)}
+                            disabled={isLoading === endpoint.id}
+                            onClick={() => handleToggleStatus(endpoint.id)}
                           >
                             <Power className="h-4 w-4 mr-2" />
                             {endpoint.status === 'active' ? '禁用' : '启用'}
@@ -294,6 +350,16 @@ export function EndpointTable({
         endpoint={viewExample}
         open={!!viewExample}
         onOpenChange={(open) => !open && setViewExample(null)}
+      />
+
+      <CreateEndpointGroupDialog 
+        open={createGroupDialogOpen} 
+        onOpenChange={setCreateGroupDialogOpen}
+        selectedEndpoints={selectedEndpoints}
+        onSuccess={() => {
+          setSelectedEndpoints([])
+          router.refresh()
+        }}
       />
     </div>
   )
