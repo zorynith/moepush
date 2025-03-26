@@ -44,9 +44,8 @@ export default async function EndpointsPage() {
       </div>
 
       <EndpointsTabs 
-        endpoints={endpointList}
+        initialEndpoints={endpointList}
         channels={channelList as Channel[]} 
-        initialGroups={[]}      
       />
     </div>
   )

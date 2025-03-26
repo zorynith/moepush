@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { Loader2, Trash, Eye, Power } from "lucide-react"
+import { Loader2, Trash, Eye, Power, Send } from "lucide-react"
 
 import {
   Table,
@@ -26,7 +26,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { useToast } from "@/components/ui/use-toast"
 import { EndpointGroupWithEndpoints } from "@/types/endpoint-group"
-import { deleteEndpointGroup, toggleEndpointGroupStatus, getEndpointGroups } from "@/lib/services/endpoint-groups"
+import { deleteEndpointGroup, toggleEndpointGroupStatus, getEndpointGroups, testEndpointGroup } from "@/lib/services/endpoint-groups"
 import { formatDate } from "@/lib/utils"
 import { EndpointGroupExample } from "./endpoint-group-example"
 import {
@@ -50,6 +50,7 @@ export function EndpointGroupTable({ initialGroups, onGroupsUpdate }: EndpointGr
   const [isDeleting, setIsDeleting] = useState(false)
   const [viewExample, setViewExample] = useState<EndpointGroupWithEndpoints | null>(null)
   const [isLoading, setIsLoading] = useState<string | null>(null)
+  const [isTesting, setIsTesting] = useState<string | null>(null)
   const { toast } = useToast()
   const router = useRouter()
   
@@ -113,6 +114,43 @@ export function EndpointGroupTable({ initialGroups, onGroupsUpdate }: EndpointGr
     }
   }
   
+  const handleTest = async (group: EndpointGroupWithEndpoints) => {
+    if (group.endpoints.length === 0) {
+      toast({
+        variant: "destructive",
+        description: "接口组内没有接口，无法测试"
+      })
+      return
+    }
+
+    // 检查是否所有接口都有规则
+    const hasInvalidRule = group.endpoints.some(e => !e.rule)
+    if (hasInvalidRule) {
+      toast({
+        variant: "destructive",
+        description: "接口组中存在未配置规则的接口"
+      })
+      return
+    }
+
+    setIsTesting(group.id)
+    try {
+      const result = await testEndpointGroup(group)
+      toast({
+        title: "测试结果",
+        description: `成功: ${result.successCount}, 失败: ${result.failedCount}`,
+        variant: result.failedCount > 0 ? "destructive" : "default"
+      })
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        description: error instanceof Error ? error.message : "测试失败"
+      })
+    } finally {
+      setIsTesting(null)
+    }
+  }
+  
   const getStatusBadgeClass = (status: "active" | "inactive") => {
     return `inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${
       status === "active" 
@@ -171,7 +209,6 @@ export function EndpointGroupTable({ initialGroups, onGroupsUpdate }: EndpointGr
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button variant="ghost" className="h-8 w-8 p-0">
-                          <span className="sr-only">打开菜单</span>
                           <MoreHorizontal className="h-4 w-4" />
                         </Button>
                       </DropdownMenuTrigger>
@@ -179,6 +216,17 @@ export function EndpointGroupTable({ initialGroups, onGroupsUpdate }: EndpointGr
                         <DropdownMenuItem onClick={() => setViewExample(group)}>
                           <Eye className="mr-2 h-4 w-4" />
                           查看示例
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => handleTest(group)}
+                          disabled={isTesting === group.id || group.status === "inactive"}
+                        >
+                          {isTesting === group.id ? (
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          ) : (
+                            <Send className="mr-2 h-4 w-4" />
+                          )}
+                          测试推送
                         </DropdownMenuItem>
                         <DropdownMenuItem 
                           onClick={() => handleToggleStatus(group.id)}

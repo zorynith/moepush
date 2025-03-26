@@ -14,17 +14,15 @@ import { EndpointGroupTable } from "@/components/endpoint-group-table"
 
 interface EndpointsTabsProps {
   initialEndpoints: Endpoint[]
-  initialGroups: EndpointGroupWithEndpoints[]
   channels: Channel[]
 }
 
 export function EndpointsTabs({ 
   initialEndpoints, 
-  initialGroups, 
   channels 
 }: EndpointsTabsProps) {
   const [endpoints, setEndpoints] = useState<Endpoint[]>(initialEndpoints)
-  const [groups, setGroups] = useState<EndpointGroupWithEndpoints[]>(initialGroups)
+  const [groups, setGroups] = useState<EndpointGroupWithEndpoints[]>([])
   const [loading, setLoading] = useState(false)
   const { toast } = useToast()
 

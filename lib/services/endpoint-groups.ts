@@ -1,4 +1,5 @@
 import { EndpointGroupWithEndpoints } from "@/types/endpoint-group"
+import { generateExampleBody } from "@/lib/utils"
 
 const API_URL = '/api/endpoint-groups'
 
@@ -90,4 +91,25 @@ export async function toggleEndpointGroupStatus(id: string): Promise<EndpointGro
     endpointIds: data.endpointIds,
     endpoints: data.endpoints
   }
+}
+
+export async function testEndpointGroup(group: EndpointGroupWithEndpoints): Promise<any> {
+  // 使用所有接口中的规则生成测试数据
+  const allRules = group.endpoints.flatMap(e => e.rule ? [e.rule] : [])
+  const exampleBody = generateExampleBody(allRules.length > 0 ? allRules.join('\n') : '{}')
+
+  const response = await fetch(`/api/push-group/${group.id}`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(exampleBody),
+  })
+
+  if (!response.ok) {
+    const error = await response.json() as { error: string }
+    throw new Error(error.error || '测试推送失败')
+  }
+
+  return response.json()
 } 
