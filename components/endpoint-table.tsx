@@ -48,12 +48,14 @@ interface EndpointTableProps {
   endpoints: Endpoint[]
   channels: Channel[]
   onEndpointsUpdate: () => void
+  onGroupCreated: () => void
 }
 
 export function EndpointTable({ 
   endpoints,
   channels,
   onEndpointsUpdate,
+  onGroupCreated,
 }: EndpointTableProps) {
   const [searchQuery, setSearchQuery] = useState("")
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
@@ -350,6 +352,7 @@ export function EndpointTable({
         selectedEndpoints={selectedEndpoints}
         onSuccess={() => {
           setSelectedEndpoints([])
+          onGroupCreated()
         }}
       />
     </div>

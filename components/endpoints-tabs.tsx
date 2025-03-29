@@ -16,9 +16,9 @@ export function EndpointsTabs({ initialEndpoints, channels }: { initialEndpoints
   const [endpoints, setEndpoints] = useState<Endpoint[]>(initialEndpoints)
   const [groups, setGroups] = useState<EndpointGroupWithEndpoints[]>([])
   const [loading, setLoading] = useState(false)
+  const [activeTab, setActiveTab] = useState("endpoints")
   const { toast } = useToast()
 
-  // 加载接口组数据
   const loadGroups = async () => {
     try {
       setLoading(true)
@@ -35,7 +35,6 @@ export function EndpointsTabs({ initialEndpoints, channels }: { initialEndpoints
     }
   }
 
-  // 加载接口数据
   const loadEndpoints = async () => {
     try {
       setLoading(true)
@@ -52,8 +51,8 @@ export function EndpointsTabs({ initialEndpoints, channels }: { initialEndpoints
     }
   }
 
-  // 处理 Tab 切换
   const handleTabChange = (value: string) => {
+    setActiveTab(value)
     if (value === "groups") {
       loadGroups()
     } else {
@@ -61,8 +60,12 @@ export function EndpointsTabs({ initialEndpoints, channels }: { initialEndpoints
     }
   }
 
+  const switchToGroupsTab = () => {
+    handleTabChange("groups")
+  }
+
   return (
-    <Tabs defaultValue="endpoints" onValueChange={handleTabChange} className="space-y-4">
+    <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-4">
       <TabsList className="grid w-full max-w-md grid-cols-2">
         <TabsTrigger value="endpoints">推送接口</TabsTrigger>
         <TabsTrigger value="groups">接口组</TabsTrigger>
@@ -85,6 +88,7 @@ export function EndpointsTabs({ initialEndpoints, channels }: { initialEndpoints
                 endpoints={endpoints}
                 onEndpointsUpdate={loadEndpoints}
                 channels={channels}
+                onGroupCreated={switchToGroupsTab}
               />
             )}
           </CardContent>
