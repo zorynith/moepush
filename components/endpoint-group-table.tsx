@@ -1,7 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
+import { useState } from "react"
 import { Loader2, Trash, Eye, Power, Send } from "lucide-react"
 
 import {
@@ -26,7 +25,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { useToast } from "@/components/ui/use-toast"
 import { EndpointGroupWithEndpoints } from "@/types/endpoint-group"
-import { deleteEndpointGroup, toggleEndpointGroupStatus, getEndpointGroups, testEndpointGroup } from "@/lib/services/endpoint-groups"
+import { deleteEndpointGroup, toggleEndpointGroupStatus, testEndpointGroup } from "@/lib/services/endpoint-groups"
 import { formatDate } from "@/lib/utils"
 import { EndpointGroupExample } from "./endpoint-group-example"
 import {
@@ -38,13 +37,12 @@ import {
 import { MoreHorizontal } from "lucide-react"
 
 interface EndpointGroupTableProps {
-  initialGroups: EndpointGroupWithEndpoints[]
-  onGroupsUpdate: (groups: EndpointGroupWithEndpoints[]) => void
+  groups: EndpointGroupWithEndpoints[]
+  onGroupsUpdate: () => void
 }
 
-export function EndpointGroupTable({ initialGroups, onGroupsUpdate }: EndpointGroupTableProps) {
+export function EndpointGroupTable({ groups, onGroupsUpdate }: EndpointGroupTableProps) {
   const [searchQuery, setSearchQuery] = useState("")
-  const [groups, setGroups] = useState(initialGroups)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [groupToDelete, setGroupToDelete] = useState<EndpointGroupWithEndpoints | null>(null)
   const [isDeleting, setIsDeleting] = useState(false)
@@ -52,11 +50,6 @@ export function EndpointGroupTable({ initialGroups, onGroupsUpdate }: EndpointGr
   const [isLoading, setIsLoading] = useState<string | null>(null)
   const [isTesting, setIsTesting] = useState<string | null>(null)
   const { toast } = useToast()
-  const router = useRouter()
-  
-  useEffect(() => {
-    setGroups(initialGroups)
-  }, [initialGroups])
   
   const filteredGroups = groups.filter((group) => {
     if (!searchQuery.trim()) return true
@@ -77,9 +70,8 @@ export function EndpointGroupTable({ initialGroups, onGroupsUpdate }: EndpointGr
     try {
       setIsDeleting(true)
       await deleteEndpointGroup(groupToDelete.id)
-      setGroups(groups.filter(g => g.id !== groupToDelete.id))
+      onGroupsUpdate()
       toast({ description: "接口组已删除" })
-      router.refresh()
       setDeleteDialogOpen(false)
     } catch (error) {
       console.error('Error deleting endpoint group:', error)
@@ -97,10 +89,7 @@ export function EndpointGroupTable({ initialGroups, onGroupsUpdate }: EndpointGr
       setIsLoading(id)
       await toggleEndpointGroupStatus(id)
       
-      // 重新获取最新的接口组列表
-      const updatedGroups = await getEndpointGroups()
-      onGroupsUpdate(updatedGroups)
-      
+      onGroupsUpdate()
       toast({
         description: "接口组状态已更新",
       })

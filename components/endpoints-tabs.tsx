@@ -12,15 +12,7 @@ import { useToast } from "@/components/ui/use-toast"
 import { EndpointTable } from "@/components/endpoint-table"
 import { EndpointGroupTable } from "@/components/endpoint-group-table"
 
-interface EndpointsTabsProps {
-  initialEndpoints: Endpoint[]
-  channels: Channel[]
-}
-
-export function EndpointsTabs({ 
-  initialEndpoints, 
-  channels 
-}: EndpointsTabsProps) {
+export function EndpointsTabs({ initialEndpoints, channels }: { initialEndpoints: Endpoint[], channels: Channel[] }) {
   const [endpoints, setEndpoints] = useState<Endpoint[]>(initialEndpoints)
   const [groups, setGroups] = useState<EndpointGroupWithEndpoints[]>([])
   const [loading, setLoading] = useState(false)
@@ -69,14 +61,6 @@ export function EndpointsTabs({
     }
   }
 
-  const handleEndpointsUpdate = (updatedEndpoints: Endpoint[]) => {
-    setEndpoints(updatedEndpoints)
-  }
-
-  const handleGroupsUpdate = (updatedGroups: EndpointGroupWithEndpoints[]) => {
-    setGroups(updatedGroups)
-  }
-
   return (
     <Tabs defaultValue="endpoints" onValueChange={handleTabChange} className="space-y-4">
       <TabsList className="grid w-full max-w-md grid-cols-2">
@@ -99,7 +83,7 @@ export function EndpointsTabs({
             ) : (
               <EndpointTable 
                 endpoints={endpoints}
-                onEndpointsUpdate={handleEndpointsUpdate}
+                onEndpointsUpdate={loadEndpoints}
                 channels={channels}
               />
             )}
@@ -121,8 +105,8 @@ export function EndpointsTabs({
               </div>
             ) : (
               <EndpointGroupTable 
-                initialGroups={groups}
-                onGroupsUpdate={handleGroupsUpdate}
+                groups={groups}
+                onGroupsUpdate={loadGroups}
               />
             )}
           </CardContent>

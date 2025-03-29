@@ -22,7 +22,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover"
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { EndpointDialog } from "@/components/endpoint-dialog"
 import { Endpoint } from "@/lib/db/schema/endpoints"
 import { useToast } from "@/components/ui/use-toast"
@@ -40,14 +40,14 @@ import { STATUS_LABELS, STATUS_COLORS } from "@/lib/constants/endpoints"
 import { Channel } from "@/lib/channels"
 import { EndpointExample } from "@/components/endpoint-example"
 import { useRouter } from "next/navigation"
-import { deleteEndpoint, toggleEndpointStatus, testEndpoint, getEndpoints } from "@/lib/services/endpoints"
+import { deleteEndpoint, toggleEndpointStatus, testEndpoint } from "@/lib/services/endpoints"
 import { Checkbox } from "@/components/ui/checkbox"
 import { CreateEndpointGroupDialog } from "./create-endpoint-group-dialog"
 
 interface EndpointTableProps {
   endpoints: Endpoint[]
   channels: Channel[]
-  onEndpointsUpdate: (endpoints: Endpoint[]) => void
+  onEndpointsUpdate: () => void
 }
 
 export function EndpointTable({ 
@@ -56,7 +56,6 @@ export function EndpointTable({
   onEndpointsUpdate,
 }: EndpointTableProps) {
   const [searchQuery, setSearchQuery] = useState("")
-  const [localEndpoints, setLocalEndpoints] = useState<Endpoint[]>(endpoints)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [endpointToDelete, setEndpointToDelete] = useState<Endpoint | null>(null)
   const [isDeleting, setIsDeleting] = useState(false)
@@ -68,11 +67,7 @@ export function EndpointTable({
   const [createGroupDialogOpen, setCreateGroupDialogOpen] = useState(false)
   const [isLoading, setIsLoading] = useState<string | null>(null)
 
-  useEffect(() => {
-    setLocalEndpoints(endpoints)
-  }, [endpoints])
-
-  const filteredEndpoints = localEndpoints?.filter((endpoint) => {
+  const filteredEndpoints = endpoints?.filter((endpoint) => {
     if (!searchQuery.trim()) return true
     
     const channel = channels.find(c => c.id === endpoint.channelId)
@@ -93,9 +88,7 @@ export function EndpointTable({
     try {
       setIsDeleting(true)
       await deleteEndpoint(endpointToDelete.id)
-      const updatedEndpoints = localEndpoints.filter(e => e.id !== endpointToDelete.id)
-      setLocalEndpoints(updatedEndpoints)
-      onEndpointsUpdate(updatedEndpoints)
+      onEndpointsUpdate()
       toast({ description: "接口已删除" })
       router.refresh()
       setDeleteDialogOpen(false)
@@ -115,10 +108,7 @@ export function EndpointTable({
       setIsLoading(id)
       await toggleEndpointStatus(id)
       
-      // 重新获取最新的推送接口列表
-      const updatedEndpoints = await getEndpoints() as Endpoint[]
-      setLocalEndpoints(updatedEndpoints)
-      onEndpointsUpdate(updatedEndpoints)
+      onEndpointsUpdate()
       
       toast({
         description: "推送接口状态已更新",
@@ -207,6 +197,7 @@ export function EndpointTable({
           )}
           <EndpointDialog 
             channels={channels}
+            onSuccess={onEndpointsUpdate}
           />
         </div>
       </div>
@@ -282,7 +273,7 @@ export function EndpointTable({
                           </DropdownMenuItem>
                           <DropdownMenuItem
                             onClick={() => handleTest(endpoint)}
-                            disabled={isTesting === endpoint.id}
+                            disabled={isTesting === endpoint.id || endpoint.status !== 'active'}
                           >
                             {isTesting === endpoint.id ? (
                               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -295,6 +286,7 @@ export function EndpointTable({
                             mode="edit"
                             endpoint={endpoint}
                             channels={channels}
+                            onSuccess={onEndpointsUpdate}
                             icon={<Pencil className="h-4 w-4 mr-2" />}
                           />
                           <DropdownMenuItem
@@ -358,7 +350,6 @@ export function EndpointTable({
         selectedEndpoints={selectedEndpoints}
         onSuccess={() => {
           setSelectedEndpoints([])
-          router.refresh()
         }}
       />
     </div>
