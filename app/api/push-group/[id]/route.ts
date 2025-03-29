@@ -4,7 +4,6 @@ import { fetchWithTimeout } from '@/lib/utils'
 import { endpointGroups, endpointToGroup } from '@/lib/db/schema/endpoint-groups'
 import { eq } from 'drizzle-orm'
 
-// 添加 edge runtime 声明
 export const runtime = 'edge'
 
 export async function POST(
@@ -17,7 +16,6 @@ export async function POST(
   try {
     const db = await getDb()
     
-    // 获取接口组信息
     const group = await db.query.endpointGroups.findFirst({
       where: eq(endpointGroups.id, id),
     })
@@ -29,7 +27,6 @@ export async function POST(
       )
     }
 
-    // 检查接口组状态
     if (group.status === "inactive") {
       return NextResponse.json(
         { error: '接口组已禁用' },
@@ -37,7 +34,6 @@ export async function POST(
       )
     }
     
-    // 获取接口组关联的所有接口
     const relations = await db.query.endpointToGroup.findMany({
       where: eq(endpointToGroup.groupId, id),
       with: {
@@ -54,7 +50,6 @@ export async function POST(
       )
     }
     
-    // 并行发送请求到所有接口
     const results = await Promise.allSettled(
       groupEndpoints.map(async (endpoint: any) => {
         const url = `${request.headers.get('origin')}/api/push/${endpoint.id}`
@@ -81,7 +76,6 @@ export async function POST(
       })
     )
     
-    // 统计成功和失败数量
     const successCount = results.filter((r: any) => r.status === 'fulfilled').length
     const failedCount = results.filter((r: any) => r.status === 'rejected').length
     
