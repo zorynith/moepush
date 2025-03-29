@@ -12,19 +12,15 @@ export async function POST(
 ) {
   try {
     const session = await auth()
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "未授权" }, { status: 401 })
-    }
 
     const { id } = await params
 
     const db = await getDb()
     
-    // 获取当前接口组
     const group = await db.query.endpointGroups.findFirst({
       where: and(
         eq(endpointGroups.id, id),
-        eq(endpointGroups.userId, session.user.id!)
+        eq(endpointGroups.userId, session!.user!.id!)
       )
     })
 
