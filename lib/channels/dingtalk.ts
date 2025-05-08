@@ -66,10 +66,6 @@ export class DingTalkChannel extends BaseChannel {
           { key: "actionCard.text", description: "markdown格式的消息内容", required: true, component: 'textarea' },
           { key: "actionCard.singleTitle", description: "单个按钮的标题", required: true },
           { key: "actionCard.singleURL", description: "点击按钮触发的URL", required: true },
-          { key: "actionCard.btnOrientation", description: "按钮排列方向", component: 'select', options: [
-            { label: "按钮竖直排列", value: "0" },
-            { label: "按钮横向排列", value: "1" }
-          ], defaultValue: "0" },
           { key: "msgtype", component: 'hidden', defaultValue: "actionCard" },
         ],
       },
