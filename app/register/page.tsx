@@ -4,7 +4,7 @@ import { RegisterForm } from "@/components/auth/register-form";
 import { GitHubButton } from "@/components/auth/github-button";
 
 export const metadata: Metadata = {
-  title: "注册 - MoePush",
+  title: "注册",
   description: "创建新账号",
 };
 
@@ -16,14 +16,14 @@ export default function RegisterPage() {
         <div className="relative z-20 flex items-center text-lg font-medium">
           <Link href="/" className="flex items-center space-x-2">
             <span className="bg-gradient-to-r from-white to-blue-100 text-transparent bg-clip-text">
-              MoePush
+              Minelibs
             </span>
           </Link>
         </div>
         <div className="relative z-20 mt-auto">
           <blockquote className="space-y-2">
             <p className="text-lg">
-              简单易用的消息推送服务
+              消息推送服务
             </p>
           </blockquote>
         </div>
