@@ -4,8 +4,8 @@ import { Suspense } from "react";
 import { LoginForm } from "@/components/auth/login-form";
 
 export const metadata: Metadata = {
-  title: "登录 - MoePush",
-  description: "登录到 MoePush",
+  title: "登录",
+  description: "登录到 Minelibs",
 };
 
 export default function LoginPage() {
@@ -16,14 +16,14 @@ export default function LoginPage() {
         <div className="relative z-20 flex items-center text-lg font-medium">
           <Link href="/" className="flex items-center space-x-2">
             <span className="bg-gradient-to-r from-white to-blue-100 text-transparent bg-clip-text">
-              MoePush
+              Minelibs
             </span>
           </Link>
         </div>
         <div className="relative z-20 mt-auto">
           <blockquote className="space-y-2">
             <p className="text-lg">
-              简单易用的消息推送服务
+              消息推送服务
             </p>
           </blockquote>
         </div>
